@@ -136,3 +136,22 @@ Where:
 *Tested on AWS c5.2xlarge (8 vCPUs, 16GB RAM)*  
 
 ---
+Here’s a polished contributors section with university affiliation:
+
+---
+
+## **👥 Contributors**  
+**Ca’ Foscari University of Venice**  
+
+### **Development Team**  
+**Khushbu Mahendra Patil**  
+*Dept. of Computer Science*  
+
+**Vafa Khalid**  
+*Dept. of Computer Science*  
+
+### **Faculty Advisor**  
+**Prof. S. Orlando**  
+*Information Retrieval and Web Search (CM0473)*  
+
+---
