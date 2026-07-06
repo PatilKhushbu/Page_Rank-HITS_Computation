@@ -1,157 +1,46 @@
-# **PageRank & HITS Computation**  
-### *Efficient Link Analysis of Algorithms for Web Mining*  
+# PageRank & HITS Computation
 
----
+C++ implementations of PageRank and HITS (Hubs & Authorities), the two foundational link-analysis algorithms behind web search ranking.
 
-## **📌 Table of Contents**  
-1. [Project Overview](#-project-overview)  
-2. [Key Features](#-key-features)  
-3. [Installation Guide](#-installation-guide)  
-4. [Usage & Examples](#-usage--examples)  
-5. [Algorithm Details](#-algorithm-details)  
-6. [Performance Benchmarks](#-performance-benchmarks)
----
+## Problem
 
-## **🌐 Project Overview**  
-This repository provides **high-performance C++ implementations** of two fundamental **web link analysis algorithms**:  
+Ranking pages or nodes by importance in a large graph — like the web, a citation network, or a social graph — isn't just about counting inbound links. A link from a highly authoritative source should count for more than one from an obscure page. This project implements the two classic algorithms that solve this: PageRank (Google's original ranking method) and HITS (which separates "hub" and "authority" scores), built as part of the Information Retrieval and Web Search course at Ca' Foscari University.
 
-- **PageRank** - The original Google ranking algorithm (Larry Page & Sergey Brin, 1998)  
-- **HITS (Hypertext Induced Topic Search)** - Kleinberg's hubs & authorities model (1999)  
+## Approach
 
-Developed based on research from **Ca' Foscari University of Venice** (Course CM0473 - Information Retrieval and Web Search).  
+- Implemented PageRank using the power iteration method on a sparse adjacency matrix, with an adjustable damping factor (default 0.85) and convergence threshold (1e-5)
+- Implemented HITS with mutual reinforcement between hub and authority scores, including query-based subgraph extraction and L2 normalization per iteration to prevent score explosion
+- Built both from scratch in C++ for performance, with OpenMP support for parallelized updates on larger graphs
+- Tested against standard graph formats (plain text edge lists, GML) for citation and web-link datasets
 
-**Use Cases:**  
-✔ Search engine ranking  
-✔ Academic citation analysis  
-✔ Social network influence mapping  
-✔ Fraud detection in transaction networks  
+## Results
 
----
+Both algorithms converge correctly on test graphs and produce ranked output (node ID, PageRank score, hub score, authority score). Runtime scales with graph size as expected for power-iteration methods — smaller graphs (10k nodes) complete in a few seconds, while larger graphs take proportionally longer.
 
-## **✨ Key Features**  
+**Note:** the original draft of this README included specific benchmark numbers (runtime/memory at 10k/100k/1M nodes on AWS c5.2xlarge). I've left those out here since I'd recommend only including benchmark claims you can actually reproduce and explain if asked in an interview — if you did run these tests, feel free to add the real numbers back in.
 
-### **PageRank Implementation**  
-| **Feature**          | **Description** | **Technical Specs** |  
-|----------------------|----------------|---------------------|  
-| **Matrix Computation** | Power iteration method | Sparse adjacency matrix storage |  
-| **Damping Factor**   | Adjustable (α) | Default: **0.85** (optimal for web graphs) |  
-| **Convergence**      | Precision-based stopping | Threshold: **1e-5** |  
-| **Parallelization**  | Multi-threaded updates | OpenMP support |  
+## Tech Stack
 
-### **HITS Implementation**  
-| **Feature**          | **Description** | **Technical Specs** |  
-|----------------------|----------------|---------------------|  
-| **Dual Scoring**     | Hub & Authority values | Mutual reinforcement model |  
-| **Query Processing** | Focused subgraph extraction | TF-IDF based expansion |  
-| **Normalization**    | L2 normalization per iteration | Prevents score explosion |  
+C++17, OpenMP (parallelization), GNU Autotools (build system for HITS)
 
----
+## How to Run
 
-## **🛠 Installation Guide**  
+```bash
+# PageRank
+git clone https://github.com/PatilKhushbu/pagerank-hits.git
+cd pagerank-hits/pagerank
+g++ -std=c++17 -O3 -fopenmp -o pagerank pagerank.cpp graph.cpp
+./pagerank -a 0.85 -c 1e-5 -t web_links.txt
 
-### **Requirements**  
-- **Compiler:** GCC 9+ / Clang 12+ (C++17 required)  
-- **Memory:** 4GB+ RAM (for graphs >100k nodes)  
-- **Dependencies:**  
-  - OpenMP (for parallelization)  
-  - GNU Autotools (for HITS build)  
-
-### **Build Instructions**  
-
-**1. PageRank:**  
-```bash  
-git clone https://github.com/your-repo/pagerank-hits.git  
-cd pagerank-hits/pagerank  
-g++ -std=c++17 -O3 -fopenmp -o pagerank pagerank.cpp graph.cpp  
-```
-
-**2. HITS Algorithm:**  
-```bash  
-cd ../hits  
-aclocal && autoconf && automake --add-missing  
-./configure --enable-optimize  
-make -j$(nproc)  
+# HITS
+cd ../hits
+aclocal && autoconf && automake --add-missing
+./configure --enable-optimize
+make -j$(nproc)
+./hits -q "machine learning" -f gml citations.gml
 ```
 
 ---
 
-## **🚀 Usage & Examples**  
-
-### **Basic PageRank Execution**  
-```bash  
-./pagerank -a 0.85 -c 1e-5 -t web_links.txt  
-```  
-**Options:**  
-- `-a`: Damping factor (0.1 to 0.95)  
-- `-c`: Convergence threshold (e.g., 0.00001)  
-- `-t`: Enable trace mode (debug output)  
-
-### **HITS with Query Filtering**  
-```bash  
-./hits -q "machine learning" -f gml citations.gml  
-```  
-
-### **Output Format**  
-```plaintext
-Rank    Node ID              PageRank   Hubs   Authorities
------   -----------------   --------   -----   -----------
-1       paper123.pdf        0.1562     0.021    0.184
-2       mit.edu/research    0.0987     0.114    0.092
-```
-
----
-
-## **📚 Algorithm Details**  
-
-### **PageRank Mathematics**  
-The recursive formula:  
-
-\[
-PR(u) = \frac{1-\alpha}{N} + \alpha \sum_{v \in B_u} \frac{PR(v)}{L(v)}
-\]
-
-Where:  
-- \( \alpha \) = Damping factor (typically 0.85)  
-- \( L(v) \) = Outbound links from page \( v \)  
-- \( B_u \) = Pages linking to \( u \)  
-
-### **HITS Algorithm Steps**  
-1. **Construct base set** from search results  
-2. **Expand subgraph** to include linked pages  
-3. **Iterate until convergence**:  
-   - Update authority scores: \( a(p) = \sum hub(q) \)  
-   - Update hub scores: \( h(p) = \sum auth(q) \)  
-4. **Normalize scores** after each iteration  
-
----
-
-## **⚡ Performance Benchmarks**  
-
-| Graph Size  | PageRank Time | HITS Time | Memory Usage |  
-|------------|--------------|-----------|--------------|  
-| 10k nodes  | 2.1 sec      | 3.8 sec   | 450 MB       |  
-| 100k nodes | 35 sec       | 68 sec    | 3.2 GB       |  
-| 1M nodes   | 7m 12s       | 14m 45s   | 28 GB        |  
-
-*Tested on AWS c5.2xlarge (8 vCPUs, 16GB RAM)*  
-
----
-Here’s a polished contributors section with university affiliation:
-
----
-
-## **👥 Contributors**  
-**Ca’ Foscari University of Venice**  
-
-### **Development Team**  
-**Khushbu Mahendra Patil**  
-*Dept. of Computer Science*  
-
-**Vafa Khalid**  
-*Dept. of Computer Science*  
-
-### **Faculty Advisor**  
-**Prof. S. Orlando**  
-*Information Retrieval and Web Search (CM0473)*  
-
----
+**Contributors:** Khushbu Mahendra Patil
+**Faculty Advisor:** Prof. S. Orlando — Information Retrieval and Web Search (CM0473), Ca' Foscari University of Venice
