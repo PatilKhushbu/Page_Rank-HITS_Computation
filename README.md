@@ -42,5 +42,5 @@ make -j$(nproc)
 
 ---
 
-**Contributors:** Khushbu Mahendra Patil
+**Contributor:** Khushbu Mahendra Patil
 **Faculty Advisor:** Prof. S. Orlando — Information Retrieval and Web Search (CM0473), Ca' Foscari University of Venice
